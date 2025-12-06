@@ -27,3 +27,15 @@ variable "api_throttle_rate_limit" {
   type        = number
   default     = 50
 }
+
+variable "enable_provisioned_concurrency" {
+  description = "Enable provisioned concurrency to eliminate cold starts (increases cost)"
+  type        = bool
+  default     = false
+}
+
+variable "provisioned_concurrency_count" {
+  description = "Number of provisioned concurrent executions"
+  type        = number
+  default     = 2
+}

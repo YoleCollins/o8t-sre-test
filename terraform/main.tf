@@ -120,6 +120,14 @@ resource "aws_lambda_function" "llm_service" {
   }
 }
 
+# --- Provisioned Concurrency for cold start elimination (optional) ---
+resource "aws_lambda_provisioned_concurrency_config" "llm_service" {
+  count                             = var.enable_provisioned_concurrency ? 1 : 0
+  function_name                     = aws_lambda_function.llm_service.function_name
+  qualifier                         = aws_lambda_function.llm_service.version
+  provisioned_concurrent_executions = var.provisioned_concurrency_count
+}
+
 # --- API Gateway (HTTP API) ---
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "llm_scores_api"
