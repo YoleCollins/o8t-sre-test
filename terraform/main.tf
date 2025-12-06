@@ -62,6 +62,18 @@ resource "aws_iam_role_policy" "lambda_policy" {
   })
 }
 
+# --- CloudWatch Log Group ---
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  name              = "/aws/lambda/llm_scores_service"
+  retention_in_days = var.log_retention_days
+
+  tags = {
+    Name        = "llm-scores-lambda-logs"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
 # --- Lambda Function ---
 data "archive_file" "lambda_zip" {
   type        = "zip"
@@ -82,7 +94,17 @@ resource "aws_lambda_function" "llm_service" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.llm_scores.name
+      ENVIRONMENT = var.environment
     }
+  }
+
+  # Associate log group
+  depends_on = [aws_cloudwatch_log_group.lambda_logs]
+
+  tags = {
+    Name        = "llm-scores-service"
+    Environment = var.environment
+    ManagedBy   = "terraform"
   }
 }
 
