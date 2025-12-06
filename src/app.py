@@ -1,9 +1,13 @@
 import json
 import boto3
 import os
+import logging
 from decimal import Decimal
 
-# Initialize DynamoDB client
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Initialize outside handler to reuse connections (helps with cold starts)
 dynamodb = boto3.resource('dynamodb')
 table_name = os.environ.get('TABLE_NAME', 'llm_scores')
 table = dynamodb.Table(table_name)
