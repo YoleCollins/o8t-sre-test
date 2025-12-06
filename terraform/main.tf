@@ -12,6 +12,18 @@ resource "aws_dynamodb_table" "llm_scores" {
     name = "model_name"
     type = "S"
   }
+  
+  # Point-in-time recovery for data protection
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  # Cost tracking
+  tags = {
+    Name        = "llm-scores-table"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
 }
 
 # --- IAM Role for Lambda ---
