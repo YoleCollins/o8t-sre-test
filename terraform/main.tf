@@ -158,3 +158,37 @@ resource "aws_lambda_permission" "api_gw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
+
+# --- Basic CloudWatch Alarms ---
+resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
+  alarm_name          = "llm-scores-lambda-errors"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = 10 # Alert if >10 errors in 2 minutes
+  alarm_description   = "Lambda function errors"
+
+  dimensions = {
+    FunctionName = aws_lambda_function.llm_service.function_name
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "api_5xx_errors" {
+  alarm_name          = "llm-scores-api-5xx-errors"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "5XXError"
+  namespace           = "AWS/ApiGateway"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = 5
+  alarm_description   = "API Gateway 5XX errors"
+
+  dimensions = {
+    ApiName = aws_apigatewayv2_api.http_api.name
+    Stage   = aws_apigatewayv2_stage.default.name
+  }
+}
