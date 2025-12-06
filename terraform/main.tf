@@ -12,7 +12,7 @@ resource "aws_dynamodb_table" "llm_scores" {
     name = "model_name"
     type = "S"
   }
-  
+
   # Point-in-time recovery for data protection
   point_in_time_recovery {
     enabled = true
@@ -130,6 +130,12 @@ resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.http_api.id
   name        = "$default"
   auto_deploy = true
+
+  # Rate limiting
+  default_route_settings {
+    throttling_burst_limit = var.api_throttle_burst_limit
+    throttling_rate_limit  = var.api_throttle_rate_limit
+  }
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
