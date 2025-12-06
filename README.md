@@ -2,6 +2,8 @@
 
 Welcome to the SRE Technical Test. This repository contains a basic "starter kit" for a service that provides information about Large Language Models (LLMs).
 
+> **📋 Solution Documentation**: See [SOLUTION.md](./SOLUTION.md) for an overview of all improvements made.
+
 ## Context
 We have a simple serverless application that retrieves LLM versions and scores from a database. The current implementation is a "Proof of Concept" (PoC) and is not yet production-ready.
 
