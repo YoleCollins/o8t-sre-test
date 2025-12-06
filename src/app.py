@@ -19,30 +19,60 @@ class DecimalEncoder(json.JSONEncoder):
             return float(obj)
         return super(DecimalEncoder, self).default(obj)
 
+def scan_table_with_pagination():
+    """
+    Scan table with pagination to handle larger datasets.
+    Processes in batches of 100 to avoid timeouts.
+    """
+    items = []
+    last_evaluated_key = None
+    
+    while True:
+        scan_params = {'Limit': 100}
+        if last_evaluated_key:
+            scan_params['ExclusiveStartKey'] = last_evaluated_key
+        
+        response = table.scan(**scan_params)
+        items.extend(response.get('Items', []))
+        
+        last_evaluated_key = response.get('LastEvaluatedKey')
+        if not last_evaluated_key:
+            break
+    
+    return items
+
 def lambda_handler(event, context):
     """
     Lambda handler to retrieve LLM scores.
-    This implementation intentionally uses a full table scan for simplicity.
+    Added pagination and better error handling.
     """
-    print("Received event:", json.dumps(event))
+    logger.info(f"Request received: {event.get('path', 'unknown')}")
 
     try:
-        # Perform a scan (naive approach for demonstration)
-        response = table.scan()
-        items = response.get('Items', [])
+        items = scan_table_with_pagination()
+        logger.info(f"Retrieved {len(items)} items")
 
-        # Return the list of items
         return {
             'statusCode': 200,
             'headers': {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'  #Restrict this in prod
             },
-            'body': json.dumps(items, cls=DecimalEncoder)
+            'body': json.dumps({
+                'items': items,
+                'count': len(items)
+            }, cls=DecimalEncoder)
         }
 
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.error(f"Error: {str(e)}", exc_info=True)
         return {
             'statusCode': 500,
-            'body': json.dumps({'error': 'Internal Server Error'})
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps({
+                'error': 'Internal Server Error',
+                'message': str(e)  #Don't expose error details in prod
+            })
         }
