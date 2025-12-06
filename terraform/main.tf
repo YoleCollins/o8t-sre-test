@@ -75,8 +75,9 @@ resource "aws_lambda_function" "llm_service" {
   role             = aws_iam_role.lambda_role.arn
   handler          = "app.lambda_handler"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-  runtime          = "python3.9"
-  timeout          = 10
+  runtime          = "python3.12"
+  timeout          = 30
+  memory_size      = 256
 
   environment {
     variables = {
